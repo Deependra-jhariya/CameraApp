@@ -54,16 +54,17 @@ const CameraScreen = ({ settings, onUpdateSettings }: CameraScreenProps) => {
   const [address, setAddress] = useState<string | null>(null);
   const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
   const [nowStr, setNowStr] = useState<string>(new Date().toLocaleString());
+  const [hasPermissions, setHasPermissions] = useState(false);
+  const [cameraReady, setCameraReady] = useState(false);
 
   useEffect(() => {
     (async () => {
-      const status = await Camera.requestCameraPermission();
-      if (status !== 'granted') {
-        Alert.alert('Camera permission required');
-      }
-      const micStatus = await Camera.requestMicrophonePermission();
-      if (micStatus !== 'granted') {
-        Alert.alert('Microphone permission required');
+      const cam = await Camera.requestCameraPermission();
+      const mic = await Camera.requestMicrophonePermission();
+      const granted = cam === 'granted' && mic === 'granted';
+      setHasPermissions(granted);
+      if (!granted) {
+        Alert.alert('Permissions', 'Camera and microphone permissions are required.');
       }
       try {
         await checkAndRequestGalleryPermissions();
@@ -122,10 +123,10 @@ const CameraScreen = ({ settings, onUpdateSettings }: CameraScreenProps) => {
     };
   }, [isRecording, isPaused]);
 
-  if (!device) {
+  if (!device || !hasPermissions) {
     return (
       <View style={styles.centered}>
-        <Text>Loading camera...</Text>
+        <Text>Preparing camera...</Text>
       </View>
     );
   }
@@ -207,6 +208,7 @@ const CameraScreen = ({ settings, onUpdateSettings }: CameraScreenProps) => {
         isActive={isFocused}
         video={true}
         audio={true}
+        onInitialized={() => setCameraReady(true)}
       />
 
       {/* Location/address/date overlay at bottom-left */}
@@ -247,7 +249,16 @@ const CameraScreen = ({ settings, onUpdateSettings }: CameraScreenProps) => {
       {/* Record/Pause/Resume buttons */}
       <View style={styles.controlsRow}>
         {!isRecording ? (
-          <TouchableOpacity onPress={startRecording}>
+          <TouchableOpacity
+            onPress={() => {
+              if (!cameraReady) {
+                Alert.alert('Please wait', 'Camera is initializing...');
+                return;
+              }
+              startRecording();
+            }}
+            disabled={!cameraReady}
+          >
             <View style={styles.recordBtn} />
           </TouchableOpacity>
         ) : (

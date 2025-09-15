@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import React, { useEffect } from 'react';
 import { useAppNavigation } from '../../utils/navigationhelper';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -18,7 +18,6 @@ const Splash = () => {
       </View>
       <Text style={styles.appName}>CameraApp</Text>
       <Text style={styles.tagline}>Record videos with live location and timestamp</Text>
-      <ActivityIndicator size="small" color="#0b5cff" style={styles.spinner} />
     </View>
   );
 };
