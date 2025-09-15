@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, Alert, Image, Dimensions, StyleSheet } from 'react-native';
 import { CameraRoll } from '@react-native-camera-roll/camera-roll';
-import { useNavigation } from '@react-navigation/native';
-import { NavigationProp } from '@react-navigation/native';
-import { RootStackParamList } from '../../navigation/types';
 import { AppColors } from '../../themes/appColors';
+import { useAppNavigation } from '../../utils/navigationhelper';
 
 
 type VideoItem = {
@@ -15,7 +13,7 @@ type VideoItem = {
 };
 
 const Gallery = () => {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const {navigateTo} = useAppNavigation()
   const [videos, setVideos] = useState<VideoItem[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -63,7 +61,7 @@ const Gallery = () => {
         contentContainerStyle={{ paddingBottom: gap, gap }}
         renderItem={({ item }) => (
           <TouchableOpacity
-            onPress={() => navigation.navigate('VideoPlayer', { uri: item.uri })}
+            onPress={() => navigateTo('VideoPlayer', { uri: item.uri })}
             style={[styles.tile, { width: size, height: size, marginLeft: gap }]}
           >
             <Image source={{ uri: item.uri }} style={styles.thumbnail} />

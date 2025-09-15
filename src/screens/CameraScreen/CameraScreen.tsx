@@ -13,12 +13,12 @@ import {
 } from 'react-native-vision-camera';
 import { CameraRoll } from '@react-native-camera-roll/camera-roll';
 import { checkAndRequestGalleryPermissions } from '../../utils/permissions';
-import { useIsFocused, useNavigation } from '@react-navigation/native';
-import { NavigationProp } from '@react-navigation/native';
-import { RootStackParamList } from '../../navigation/types';
+import { useIsFocused } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { getCurrentLocation } from '../../utils/locationService';
 import { AppColors } from '../../themes/appColors';
+import { formatTime } from '../../utils/formatTime';
+import { useAppNavigation } from '../../utils/navigationhelper';
 
 
 type CameraScreenProps = {
@@ -26,25 +26,12 @@ type CameraScreenProps = {
   onUpdateSettings?: (s: any) => void;
 };
 
-const formatTime = (ms: number) => {
-  const totalSeconds = Math.floor(ms / 1000);
-  const h = Math.floor(totalSeconds / 3600)
-    .toString()
-    .padStart(2, '0');
-  const m = Math.floor((totalSeconds % 3600) / 60)
-    .toString()
-    .padStart(2, '0');
-  const s = Math.floor(totalSeconds % 60)
-    .toString()
-    .padStart(2, '0');
-  return h === '00' ? `${m}:${s}` : `${h}:${m}:${s}`;
-};
 
 const CameraScreen = ({ settings, onUpdateSettings }: CameraScreenProps) => {
   const cameraRef = useRef<Camera>(null);
   const [cameraPosition, setCameraPosition] = useState<'back' | 'front'>('back');
   const device = useCameraDevice(cameraPosition);
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const {navigateTo} = useAppNavigation()
   const isFocused = useIsFocused();
 
   const [isRecording, setIsRecording] = useState(false);
@@ -234,10 +221,10 @@ const CameraScreen = ({ settings, onUpdateSettings }: CameraScreenProps) => {
         </View>
       )}
 
-      {/* Gallery button bottom-left with last video thumb (hidden while recording) */}
+      {/* Gallery  with last video thumb (hidden while recording) */}
       {!isRecording && (
         <View style={styles.galleryWrap}>
-          <TouchableOpacity onPress={() => navigation.navigate('Gallery')}>
+          <TouchableOpacity onPress={() => navigateTo('Gallery')}>
             {lastThumb ? (
               <Image source={{ uri: lastThumb }} style={styles.galleryThumb} />
             ) : (
@@ -249,7 +236,7 @@ const CameraScreen = ({ settings, onUpdateSettings }: CameraScreenProps) => {
         </View>
       )}
 
-      {/* Controls: Pause/Resume (left), Record/Stop (center), Switch Camera (right) */}
+      {/* Controls: Pause/Resume*/}
       <View style={styles.controlsRow}>
         {isRecording && (
           !isPaused ? (
@@ -341,7 +328,7 @@ const styles = StyleSheet.create({
     height: 56,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: AppColors.black,
+    borderColor: AppColors.white,
   },
   galleryPlaceholder: {
     width: 56,
@@ -349,7 +336,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: AppColors.lightWhite,
     borderWidth: 1,
-    borderColor: AppColors.black,
+    borderColor: AppColors.white,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -366,7 +353,7 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     backgroundColor: 'white',
     borderWidth: 2,
-    borderColor: AppColors.black,
+    borderColor: AppColors.white,
   },
   recordBtnActive: {
     backgroundColor: 'red',
@@ -377,7 +364,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     backgroundColor: AppColors.lightWhite,
     borderWidth: 2,
-    borderColor: AppColors.black,
+    borderColor: AppColors.white,
     alignItems: 'center',
     justifyContent: 'center',
   },
