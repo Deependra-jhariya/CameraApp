@@ -4,6 +4,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Splash from '../../screens/Splash/Splash';
 import CameraScreen from '../../screens/CameraScreen/CameraScreen';
+import Gallery from '../../screens/Gallery/Gallery';
+import VideoPlayer from '../../screens/VideoPlayer/VideoPlayer';
 
 const Stack = createNativeStackNavigator();
 const AllStack = () => {
@@ -12,6 +14,8 @@ const AllStack = () => {
     <Stack.Navigator initialRouteName='Splash' screenOptions={{headerShown:false}}>
       <Stack.Screen name="Splash" component={Splash} />
       <Stack.Screen name="CameraScreen" component={CameraScreen} />
+      <Stack.Screen name="Gallery" component={Gallery} />
+      <Stack.Screen name="VideoPlayer" component={VideoPlayer} />
     </Stack.Navigator>
    </NavigationContainer>
   )
