@@ -42,7 +42,8 @@ const formatTime = (ms: number) => {
 
 const CameraScreen = ({ settings, onUpdateSettings }: CameraScreenProps) => {
   const cameraRef = useRef<Camera>(null);
-  const device = useCameraDevice('back');
+  const [cameraPosition, setCameraPosition] = useState<'back' | 'front'>('back');
+  const device = useCameraDevice(cameraPosition);
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const isFocused = useIsFocused();
 
@@ -233,21 +234,43 @@ const CameraScreen = ({ settings, onUpdateSettings }: CameraScreenProps) => {
         </View>
       )}
 
-      {/* Gallery button bottom-left with last video thumb */}
-      <View style={styles.galleryWrap}>
-        <TouchableOpacity onPress={() => navigation.navigate('Gallery')}>
-          {lastThumb ? (
-            <Image source={{ uri: lastThumb }} style={styles.galleryThumb} />
-          ) : (
-            <View style={styles.galleryPlaceholder}>
-              <Ionicons name="images" size={24} color="#000" />
-            </View>
-          )}
-        </TouchableOpacity>
-      </View>
+      {/* Gallery button bottom-left with last video thumb (hidden while recording) */}
+      {!isRecording && (
+        <View style={styles.galleryWrap}>
+          <TouchableOpacity onPress={() => navigation.navigate('Gallery')}>
+            {lastThumb ? (
+              <Image source={{ uri: lastThumb }} style={styles.galleryThumb} />
+            ) : (
+              <View style={styles.galleryPlaceholder}>
+                <Ionicons name="images" size={24} color="#000" />
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
+      )}
 
-      {/* Record/Pause/Resume buttons */}
+      {/* Controls: Pause/Resume (left), Record/Stop (center), Switch Camera (right) */}
       <View style={styles.controlsRow}>
+        {isRecording && (
+          !isPaused ? (
+            <TouchableOpacity onPress={pauseRecording}>
+              <View style={[styles.smallBtn, { marginRight: 16 }]}>
+                <Ionicons name="pause" size={28} color="#000" />
+              </View>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity onPress={resumeRecording}>
+              <View style={[styles.smallBtn, { marginRight: 16 }]}>
+                <Ionicons name="play" size={28} color="#000" />
+              </View>
+            </TouchableOpacity>
+          )
+        )}
+
+        {!isRecording && (
+          <View style={{ width: 76 }} />
+        )}
+
         {!isRecording ? (
           <TouchableOpacity
             onPress={() => {
@@ -262,25 +285,19 @@ const CameraScreen = ({ settings, onUpdateSettings }: CameraScreenProps) => {
             <View style={styles.recordBtn} />
           </TouchableOpacity>
         ) : (
-          <>
-            <TouchableOpacity onPress={stopRecording}>
-              <View style={[styles.recordBtn, styles.recordBtnActive]} />
-            </TouchableOpacity>
-            {!isPaused ? (
-              <TouchableOpacity onPress={pauseRecording}>
-                <View style={styles.smallBtn}>
-                  <Ionicons name="pause" size={28} color="#000" />
-                </View>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity onPress={resumeRecording}>
-                <View style={styles.smallBtn}>
-                  <Ionicons name="play" size={28} color="#000" />
-                </View>
-              </TouchableOpacity>
-            )}
-          </>
+          <TouchableOpacity onPress={stopRecording}>
+            <View style={[styles.recordBtn, styles.recordBtnActive]} />
+          </TouchableOpacity>
         )}
+
+        <TouchableOpacity
+          onPress={() => setCameraPosition(p => (p === 'back' ? 'front' : 'back'))}
+          disabled={isRecording}
+        >
+          <View style={[styles.smallBtn, { marginLeft: 16, opacity: isRecording ? 0.5 : 1 }]}>
+            <Ionicons name="camera-reverse" size={26} color="#000" />
+          </View>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -350,7 +367,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderWidth: 2,
     borderColor: AppColors.black,
-    marginRight: 16,
   },
   recordBtnActive: {
     backgroundColor: 'red',
@@ -368,7 +384,7 @@ const styles = StyleSheet.create({
   locationOverlay: {
     position: 'absolute',
     left: 16,
-    bottom: 120,
+    bottom: 150,
     right: 16,
   },
   overlayText: {
