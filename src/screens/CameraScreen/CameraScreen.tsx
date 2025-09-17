@@ -182,12 +182,27 @@ const CameraScreen = ({ settings, onUpdateSettings }: CameraScreenProps) => {
           setElapsedMs(0);
           try {
             const filePath = video.path?.startsWith('file://') ? video.path : `file://${video.path}`;
-            // Compress the recorded video based on selected quality
+            // Compress the recorded video while preserving resolution (manual bitrate + explicit size)
             let compressedPath: string = filePath;
             try {
+              const usedH = (selectedFormat as any)?.videoHeight ?? 0;
+              const usedW = (selectedFormat as any)?.videoWidth ?? 0;
+              // Choose bitrate based on target resolution
+              // Reduced bitrates for smaller file sizes
+              const bitrateMap: Record<number, number> = {
+                720: 1_500_000,     // ~1.5 Mbps (reduced from 5)
+                1080: 2_500_000,    // ~2.5 Mbps (reduced from 8)
+                2160: 8_000_000,    // ~8 Mbps (reduced from 35)
+              };
+              const targetBitrate = usedH >= 2000 ? bitrateMap[2160] : usedH >= 1000 ? bitrateMap[1080] : usedH >= 700 ? bitrateMap[720] : 1_000_000;
+              const maxSide = Math.max(usedW || 0, usedH || 0) || (resolution === '4k' ? 3840 : resolution === '1080p' ? 1920 : resolution === '720p' ? 1280 : 0);
+
               compressedPath = await VideoCompressor.compress(filePath, {
-                compressionMethod: 'auto',
-                quality,
+                compressionMethod: 'manual',
+                bitrate: targetBitrate,
+                // Ensure compressor does not downscale to 640 by default
+                // maxSize is the longest side (width or height)
+                maxSize: maxSide > 0 ? maxSide : undefined,
               });
             } catch (compressErr) {
               console.warn('Video compression failed, saving original.');
